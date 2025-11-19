@@ -23,14 +23,5 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build Docker image
-      run: docker build --build-arg CRONN_VERSION=$VERSION -t kszakharov/cronn:$VERSION .
-
-    - name: Tag latest
-      run: docker tag kszakharov/cronn:$VERSION kszakharov/cronn:latest
-
-    - name: Push versioned Docker image to Docker Hub
-      run: docker push kszakharov/cronn:$VERSION
-
-    - name: Push latest Docker image to Docker Hub
-      run: docker push kszakharov/cronn:latest
+    - name: Build and push Docker image
+      run: docker build --push -t kszakharov/cronn:$VERSION -t kszakharov/cronn:latest .
