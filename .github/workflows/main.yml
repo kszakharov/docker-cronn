@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: linux/amd64
+          - arch: amd64
             runner: ubuntu-latest
-          - platform: linux/arm64
+          - arch: arm64
             runner: ubuntu-24.04-arm
 
     steps:
@@ -32,4 +32,32 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Docker image
-      run: docker build --push -t kszakharov/cronn:$VERSION -t kszakharov/cronn:latest .
+      run: docker build --push -t kszakharov/cronn:$VERSION-${{ matrix.arch }} -t kszakharov/cronn:latest-${{ matrix.arch }} .
+
+  manifest:
+    needs: build_and_publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Read version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create and push manifests
+        run: |
+          docker manifest create kszakharov/cronn:${VERSION} \
+            kszakharov/cronn:${VERSION}-amd64 \
+            kszakharov/cronn:${VERSION}-arm64
+
+          docker manifest push kszakharov/cronn:${VERSION}
+
+          docker manifest create kszakharov/cronn:latest \
+            kszakharov/cronn:latest-amd64 \
+            kszakharov/cronn:latest-arm64
+
+          docker manifest push kszakharov/cronn:latest
