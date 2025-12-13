@@ -31,4 +31,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Docker image
-      run: docker build --push -t kszakharov/cronn:$VERSION-${{ matrix.arch }} -t kszakharov/cronn:latest-${{ matrix.arch }} .
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: |
+          kszakharov/cronn:${VERSION}
+          kszakharov/cronn:latest
