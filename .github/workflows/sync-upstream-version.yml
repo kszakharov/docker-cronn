@@ -1,0 +1,49 @@
+name: Sync Upstream Version
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Get versions
+        id: versions
+        run: |
+          UPSTREAM=$(curl -s https://api.github.com/repos/umputun/cronn/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          LOCAL=$(cat VERSION | tr -d '[:space:]')
+          echo "upstream=$UPSTREAM" >> $GITHUB_OUTPUT
+          echo "local=$LOCAL" >> $GITHUB_OUTPUT
+
+      - name: Update VERSION file
+        if: steps.versions.outputs.upstream != steps.versions.outputs.local
+        run: echo "${{ steps.versions.outputs.upstream }}" > VERSION
+
+      - name: Create Pull Request
+        if: steps.versions.outputs.upstream != steps.versions.outputs.local
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "⬆️ Bump version to ${{ steps.versions.outputs.upstream }}"
+          title: "⬆️ Bump upstream version ${{ steps.versions.outputs.local }} → ${{ steps.versions.outputs.upstream }}"
+          body: |
+            Upstream [`{cronn}`](https://github.com/umputun/cronn}) released a new version.
+
+            | | Version |
+            |---|---|
+            | **Before** | `${{ steps.versions.outputs.local }}` |
+            | **After** | `${{ steps.versions.outputs.upstream }}` |
+
+            [Release notes](https://github.com/umputun/cronn/releases/tag/v${{ steps.versions.outputs.upstream }})
+          branch: chore/bump-version
+          base: main
+          delete-branch: true
+          labels: |
+            automated
