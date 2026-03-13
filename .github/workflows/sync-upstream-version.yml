@@ -34,7 +34,7 @@ jobs:
           commit-message: "⬆️ Bump version to ${{ steps.versions.outputs.upstream }}"
           title: "⬆️ Bump upstream version ${{ steps.versions.outputs.local }} → ${{ steps.versions.outputs.upstream }}"
           body: |
-            Upstream [`{cronn}`](https://github.com/umputun/cronn}) released a new version.
+            Upstream [`cronn`](https://github.com/umputun/cronn) released a new version.
 
             | | Version |
             |---|---|
@@ -42,8 +42,7 @@ jobs:
             | **After** | `${{ steps.versions.outputs.upstream }}` |
 
             [Release notes](https://github.com/umputun/cronn/releases/tag/v${{ steps.versions.outputs.upstream }})
-          branch: chore/bump-version
-          base: main
+          branch: automation/bump-version
           delete-branch: true
           labels: |
             automated
