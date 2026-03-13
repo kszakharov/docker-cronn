@@ -1,5 +1,8 @@
 name: Sync Upstream Version
 
+env:
+  UPSTREAM_REPO: umputun/cronn
+
 on:
   schedule:
     - cron: '0 9 * * 1'
@@ -17,7 +20,7 @@ jobs:
       - name: Get versions
         id: versions
         run: |
-          UPSTREAM=$(curl -s https://api.github.com/repos/umputun/cronn/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          UPSTREAM=$(curl -s https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/releases/latest | jq -r '.tag_name' | sed 's/^v//')
           LOCAL=$(cat VERSION | tr -d '[:space:]')
           echo "upstream=$UPSTREAM" >> $GITHUB_OUTPUT
           echo "local=$LOCAL" >> $GITHUB_OUTPUT
@@ -28,21 +31,29 @@ jobs:
 
       - name: Create Pull Request
         if: steps.versions.outputs.upstream != steps.versions.outputs.local
+        id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "⬆️ Bump version to ${{ steps.versions.outputs.upstream }}"
           title: "⬆️ Bump upstream version ${{ steps.versions.outputs.local }} → ${{ steps.versions.outputs.upstream }}"
           body: |
-            Upstream [`cronn`](https://github.com/umputun/cronn) released a new version.
+            Upstream [`${{ env.UPSTREAM_REPO }}`](https://github.com/${{ env.UPSTREAM_REPO }}) released a new version.
 
             | | Version |
             |---|---|
             | **Before** | `${{ steps.versions.outputs.local }}` |
             | **After** | `${{ steps.versions.outputs.upstream }}` |
 
-            [Release notes](https://github.com/umputun/cronn/releases/tag/v${{ steps.versions.outputs.upstream }})
+            [Release notes](https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/v${{ steps.versions.outputs.upstream }})
           branch: automation/bump-version
           delete-branch: true
+          sign-commits: true
           labels: |
             automated
+
+      - name: Merge Pull Request
+        if: steps.versions.outputs.upstream != steps.versions.outputs.local
+        run: gh pr merge --merge "${{ steps.cpr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
