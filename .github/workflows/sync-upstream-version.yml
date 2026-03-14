@@ -20,7 +20,7 @@ jobs:
       - name: Get versions
         id: versions
         run: |
-          UPSTREAM=$(curl -s https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          UPSTREAM=$(curl -s https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/releases/latest | jq -r '.tag_name')
           LOCAL=$(cat VERSION | tr -d '[:space:]')
           echo "upstream=$UPSTREAM" >> $GITHUB_OUTPUT
           echo "local=$LOCAL" >> $GITHUB_OUTPUT
