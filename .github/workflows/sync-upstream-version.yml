@@ -45,7 +45,7 @@ jobs:
             | **Before** | `${{ steps.versions.outputs.local }}` |
             | **After** | `${{ steps.versions.outputs.upstream }}` |
 
-            [Release notes](https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/v${{ steps.versions.outputs.upstream }})
+            [Release notes](https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/${{ steps.versions.outputs.upstream }})
           branch: automation/bump-version
           delete-branch: true
           sign-commits: true
